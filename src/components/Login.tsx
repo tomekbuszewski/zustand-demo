@@ -4,9 +4,14 @@ import { useNavigate } from "react-router-dom";
 import { handleLogin } from "../api/login.ts";
 import { ROUTES } from "../routes.tsx";
 
+import { useUserStore } from "../state/user.ts";
+
 export type LoginState = "success" | "error" | "loading" | "stale";
 
 export default function App() {
+  const isLoggedIn = useUserStore((state) => state.isLoggedIn);
+  const setUsername = useUserStore((state) => state.setUsername);
+  const setIsLoggedIn = useUserStore((state) => state.setLoginState);
   const [loginState, setLoginState] = useState<LoginState>("stale");
   const navigate = useNavigate();
 
@@ -37,20 +42,23 @@ export default function App() {
       ).then((result) => {
         if (result) {
           setLoginState("success");
+          setIsLoggedIn(true);
+          setUsername(result.data.username);
         } else {
           setLoginState("error");
+          setIsLoggedIn(false);
         }
       });
     }
   }
 
   useEffect(() => {
-    if (loginState === "success") {
+    if (isLoggedIn) {
       setTimeout(() => {
         navigate(ROUTES.DASHBOARD);
       }, 1000);
     }
-  }, [loginState, navigate]);
+  }, [isLoggedIn, navigate]);
 
   return (
     <fieldset className="bg-gray-100 flex justify-center items-center h-screen">
